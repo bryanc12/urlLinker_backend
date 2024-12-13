@@ -13,7 +13,19 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/gofiber/fiber/v3/middleware/cors"
+	"github.com/joho/godotenv"
 )
+
+var IP, PORT string
+
+var CORS_DOMAINS string = os.Getenv("CORS_DOMAINS")
+
+var TLS_ENABLED bool = true
+var TLS_KEY string = os.Getenv("TLS_PRIVATE")
+var TLS_CERT string = os.Getenv("TLS_CERT")
+
+var CAPTCHA_ENABLED bool = true
+var CLOUDFLARE_TURNSTILE_SECRET_KEY string = os.Getenv("CLOUDFLARE_TURNSTILE_SECRET_KEY")
 
 // letterBytes is a string containing all the characters that can be used in the urlHash
 const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -22,15 +34,6 @@ const cloudflareVerifyUrl string = "https://challenges.cloudflare.com/turnstile/
 
 const maxUrlSize int = 1000
 const urlHashSize int = 6
-
-var CORS_DOMAINS string = os.Getenv("CORS_DOMAINS")
-
-var TLS_ENABLED bool = os.Getenv("TLS_ENABLED") == "true"
-var TLS_SECRET string = os.Getenv("TLS_PRIVATE")
-var TLS_CERT string = os.Getenv("TLS_CERT")
-
-var CLOUDFLARE_TURNSTILE_SECRET_KEY string = os.Getenv("CLOUDFLARE_TURNSTILE_SECRET_KEY")
-var captchaEnabled bool = CLOUDFLARE_TURNSTILE_SECRET_KEY != ""
 
 var urlCount int = 0
 var urlMap map[string]string = make(map[string]string)
@@ -52,7 +55,7 @@ func getUrl(c fiber.Ctx) error {
 }
 
 func addUrl(c fiber.Ctx) error {
-	if captchaEnabled {
+	if CAPTCHA_ENABLED {
 		if !verifyCaptcha(c) {
 			return c.SendStatus(fiber.StatusBadRequest)
 		}
@@ -134,23 +137,37 @@ func verifyCaptcha(c fiber.Ctx) bool {
 	return captchaCheckResponse.Success
 }
 
-func main() {
+func loadEnv() {
+	godotenv.Load(".env")
 	ip, port := os.Getenv("IP"), os.Getenv("PORT")
 
 	if CLOUDFLARE_TURNSTILE_SECRET_KEY == "" {
 		fmt.Println("CLOUDFLARE_TURNSTILE_SECRET_KEY is not set, captcha will not be enabled")
-		captchaEnabled = false
+		CAPTCHA_ENABLED = false
 	}
 
 	if ip == "" {
 		fmt.Println("IP is not set, defaulting to 0.0.0.0")
-		ip = "0.0.0.0"
+		IP = "0.0.0.0"
+	} else {
+		IP = ip
 	}
 
 	if port == "" {
 		fmt.Println("PORT is not set, defaulting to 9999")
-		port = "9999"
+		PORT = "9999"
+	} else {
+		PORT = port
 	}
+
+	if TLS_KEY == "" || TLS_CERT == "" {
+		fmt.Println("TLS_KEY and TLS_CERT are not set, TLS will be disabled")
+		TLS_ENABLED = false
+	}
+}
+
+func main() {
+	loadEnv()
 
 	app := fiber.New()
 
@@ -165,5 +182,20 @@ func main() {
 	app.Get("/:urlHash", getUrl)
 	app.Post("/", addUrl)
 
-	app.Listen(ip + ":" + port)
+	address := IP + ":" + PORT
+	fmt.Println("Server listening on " + address)
+
+	if TLS_ENABLED {
+		app.Listen(address, fiber.ListenConfig{
+			DisableStartupMessage: true,
+			CertFile:              TLS_CERT,
+			CertKeyFile:           TLS_KEY,
+		})
+
+		return
+	}
+
+	app.Listen(address, fiber.ListenConfig{
+		DisableStartupMessage: true,
+	})
 }
