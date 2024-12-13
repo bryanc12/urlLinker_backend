@@ -1,4 +1,6 @@
-# Project Title
+# UrlLinker Backend Server
+
+A url shortener backend server built with Golang and Fiber v3 framework. With Cloudflare and Cloudfalre Turnstile supported.
 
 ## Environment variables
 
