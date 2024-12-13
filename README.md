@@ -4,7 +4,7 @@ An url shortener backend server built with Golang and Fiber v3 framework. With C
 
 ## Environmental variables
 
-All the environmental variables are optional.\
+All the environmental variables are optional.
 
 1. `IP` Address for the server to run on.
 2. `PORT` Port number for the server to run on.
