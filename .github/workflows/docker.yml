@@ -3,11 +3,12 @@ name: Docker
 on:
     push:
         tags:
-            - v*.*.*
+            - "v*.*.*"
 
 jobs:
     build_and_publish:
         runs-on: ubuntu-latest
+        if: github.ref == 'refs/tags/v*.*.*'
 
         steps:
             - name: Get Tag
