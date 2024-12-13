@@ -1,0 +1,14 @@
+name: Docker
+
+on:
+    push:
+        branches: ["release"]
+        tags: ["v*.*.*"]
+
+jobs:
+    build_and_publish:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Echo Ref
+              run: echo "${{ github.ref }}"
