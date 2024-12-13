@@ -2,8 +2,10 @@ name: Docker
 
 on:
     push:
-        branches: ["release"]
-        tags: ["v*.*.*"]
+        branches:
+            - release
+        tags:
+            - v*.*.*
 
 jobs:
     build_and_publish:
