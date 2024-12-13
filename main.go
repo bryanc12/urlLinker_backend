@@ -18,14 +18,14 @@ import (
 
 var IP, PORT string
 
-var CORS_DOMAINS string = os.Getenv("CORS_DOMAINS")
+var CORS_DOMAINS string
 
 var TLS_ENABLED bool = true
-var TLS_KEY string = os.Getenv("TLS_PRIVATE")
-var TLS_CERT string = os.Getenv("TLS_CERT")
+var TLS_KEY string
+var TLS_CERT string
 
 var CAPTCHA_ENABLED bool = true
-var CLOUDFLARE_TURNSTILE_SECRET_KEY string = os.Getenv("CLOUDFLARE_TURNSTILE_SECRET_KEY")
+var CLOUDFLARE_TURNSTILE_SECRET_KEY string
 
 // letterBytes is a string containing all the characters that can be used in the urlHash
 const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -121,6 +121,7 @@ func verifyCaptcha(c fiber.Ctx) bool {
 
 	response, err := http.DefaultClient.Do(request)
 	if err != nil || response.StatusCode != http.StatusOK {
+		fmt.Println("Captcha secret key is invalid or the request failed")
 		return false
 	}
 
@@ -139,25 +140,24 @@ func verifyCaptcha(c fiber.Ctx) bool {
 
 func loadEnv() {
 	godotenv.Load(".env")
-	ip, port := os.Getenv("IP"), os.Getenv("PORT")
+	IP, PORT = os.Getenv("IP"), os.Getenv("PORT")
+	CLOUDFLARE_TURNSTILE_SECRET_KEY = os.Getenv("CLOUDFLARE_TURNSTILE_SECRET_KEY")
+	CORS_DOMAINS = os.Getenv("CORS_DOMAINS")
+	TLS_KEY, TLS_CERT = os.Getenv("TLS_KEY"), os.Getenv("TLS_CERT")
 
 	if CLOUDFLARE_TURNSTILE_SECRET_KEY == "" {
 		fmt.Println("CLOUDFLARE_TURNSTILE_SECRET_KEY is not set, captcha will not be enabled")
 		CAPTCHA_ENABLED = false
 	}
 
-	if ip == "" {
+	if IP == "" {
 		fmt.Println("IP is not set, defaulting to 0.0.0.0")
 		IP = "0.0.0.0"
-	} else {
-		IP = ip
 	}
 
-	if port == "" {
+	if PORT == "" {
 		fmt.Println("PORT is not set, defaulting to 9999")
 		PORT = "9999"
-	} else {
-		PORT = port
 	}
 
 	if TLS_KEY == "" || TLS_CERT == "" {
