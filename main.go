@@ -16,7 +16,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
-var IP, PORT string
+var IP, PORT string = "0.0.0.0", "3000"
 
 var CORS_DOMAINS string
 
@@ -140,7 +140,6 @@ func verifyCaptcha(c fiber.Ctx) bool {
 
 func loadEnv() {
 	godotenv.Load(".env")
-	IP, PORT = os.Getenv("IP"), os.Getenv("PORT")
 	CLOUDFLARE_TURNSTILE_SECRET_KEY = os.Getenv("CLOUDFLARE_TURNSTILE_SECRET_KEY")
 	CORS_DOMAINS = os.Getenv("CORS_DOMAINS")
 	TLS_KEY, TLS_CERT = os.Getenv("TLS_KEY"), os.Getenv("TLS_CERT")
@@ -148,16 +147,6 @@ func loadEnv() {
 	if CLOUDFLARE_TURNSTILE_SECRET_KEY == "" {
 		fmt.Println("CLOUDFLARE_TURNSTILE_SECRET_KEY is not set, captcha will not be enabled")
 		CAPTCHA_ENABLED = false
-	}
-
-	if IP == "" {
-		fmt.Println("IP is not set, defaulting to 0.0.0.0")
-		IP = "0.0.0.0"
-	}
-
-	if PORT == "" {
-		fmt.Println("PORT is not set, defaulting to 9999")
-		PORT = "9999"
 	}
 
 	if TLS_KEY == "" || TLS_CERT == "" {
