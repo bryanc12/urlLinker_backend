@@ -9,3 +9,4 @@ on:
 jobs:
     deploy:
         runs-on: ubuntu-latest
+        if: 1 == 0
